@@ -1,8 +1,8 @@
 module.exports = (req, res, next) => {
   const queryObject = { ...req.query };
 
-  const fields = ["sort", "fields", "page", "limit"];
-  fields.forEach((field) => delete queryObject[field]);
+  const params = ["sort", "fields", "page", "limit"];
+  params.forEach((param) => delete queryObject[param]);
 
   let queryString = JSON.stringify(queryObject);
 
