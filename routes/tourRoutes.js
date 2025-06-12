@@ -5,10 +5,13 @@ const {
   getTour,
   updateTour,
   deleteTour,
+  aliasTopTours,
 } = require("../controllers/tourController");
-const formatQuery = require("../middleware/formatQuery");
+const formatQuery = require("../middlewares/formatQuery");
 
 const router = express.Router();
+
+router.route("/api/top-tours").get(aliasTopTours, getAllTours);
 
 router.route("/api/tours").get(formatQuery, getAllTours).post(createTour);
 

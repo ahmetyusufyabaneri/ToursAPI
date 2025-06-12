@@ -2,7 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 
 const tourRouter = require("./routes/tourRoutes");
-const queryParser = require("./middleware/queryParser");
+const queryParser = require("./middlewares/queryParser");
 
 const app = express();
 
