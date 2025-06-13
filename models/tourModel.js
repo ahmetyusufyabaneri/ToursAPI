@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
+const validator = require("validator");
 
 const tourSchema = new Schema(
   {
@@ -7,6 +8,12 @@ const tourSchema = new Schema(
       type: String,
       required: [true, "Tour must have name value"],
       unique: [true, "Name value must be unique"],
+      min: [5, "Name value mustn't less than 5"],
+      min: [50, "Name value mustn't more than 50"],
+      validate: [
+        validator.isAlpha,
+        "Name value must contain only alphabetic characters",
+      ],
     },
     duration: {
       type: Number,
@@ -24,7 +31,7 @@ const tourSchema = new Schema(
     ratingAverage: {
       type: Number,
       min: [1, "Rating average mustn't less than 1"],
-      max: [5, "Rating average mustn't more than 1"],
+      max: [5, "Rating average mustn't more than 5"],
       default: 4.0,
     },
     ratingsQuantity: {
@@ -34,6 +41,15 @@ const tourSchema = new Schema(
     price: {
       type: Number,
       required: [true, "Tour must have price value"],
+    },
+    priceDiscount: {
+      type: Number,
+      validate: {
+        validator: function () {
+          return value < this.price;
+        },
+        message: "Discount price mustn't more than price",
+      },
     },
     summary: {
       type: String,
@@ -80,9 +96,31 @@ tourSchema.virtual("turkishPrice").get(function () {
 });
 
 tourSchema.pre("save", function (next) {
-  console.log("It worked before save");
-
   this.hour = this.duration * 24;
+
+  next();
+});
+
+tourSchema.post("save", function (doc, next) {
+  console.log("It worked after create account process");
+  s;
+  next();
+});
+
+tourSchema.pre("find", function (next) {
+  this.find({ premium: { $ne: true } });
+
+  next();
+});
+
+tourSchema.pre("aggregate", function (next) {
+  this.pipeline().unshift({ $match: { premium: { $ne: true } } });
+
+  next();
+});
+
+tourSchema.post("aggregate", function (doc, next) {
+  console.log("It worked just after report process");
 
   next();
 });
