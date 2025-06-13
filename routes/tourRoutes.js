@@ -7,6 +7,7 @@ const {
   deleteTour,
   aliasTopTours,
   getTourStats,
+  getMonthlyPlan,
 } = require("../controllers/tourController");
 const formatQuery = require("../middlewares/formatQuery");
 
@@ -16,7 +17,7 @@ router.route("/api/top-tours").get(aliasTopTours, getAllTours);
 
 router.route("/api/tour-stats").get(getTourStats);
 
-router.route("/api/monthly-plan/:year");
+router.route("/api/monthly-plan/:year").get(getMonthlyPlan);
 
 router.route("/api/tours").get(formatQuery, getAllTours).post(createTour);
 
