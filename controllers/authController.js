@@ -1,4 +1,17 @@
 const User = require("../models/userModel");
+const jwt = require("jsonwebtoken");
+
+const signToken = (userId) => {
+  return jwt.sign({ id: userId, role: "admin" }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
+};
+
+const createSendToken = (user, res, code) => {
+  const token = signToken(user._id);
+
+  res.status(code).json({ message: "New account created", user, token });
+};
 
 exports.signUp = async (req, res) => {
   try {
@@ -8,7 +21,8 @@ exports.signUp = async (req, res) => {
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
     });
-    res.status(201).json({ message: "New account created", data: newUser });
+
+    createSendToken(newUser, res, 201);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
