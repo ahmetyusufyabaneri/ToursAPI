@@ -54,6 +54,13 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+userSchema.methods.passwordValidation = async function (
+  password,
+  hashedPassword
+) {
+  return await bcrypt.compare(password, hashedPassword);
+};
+
 const User = model("User", userSchema);
 
 module.exports = User;
