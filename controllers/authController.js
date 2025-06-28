@@ -1,5 +1,6 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
+const err = require("../utils/error");
 
 const signToken = (userId) => {
   return jwt.sign({ id: userId, role: "admin" }, process.env.JWT_SECRET, {
@@ -26,7 +27,7 @@ const createSendToken = (user, res, code, message) => {
   });
 };
 
-exports.signUp = async (req, res) => {
+exports.signUp = async (req, res, next) => {
   try {
     const newUser = await User.create({
       name: req.body.name,
@@ -37,40 +38,108 @@ exports.signUp = async (req, res) => {
 
     createSendToken(newUser, res, 201, "New account created");
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(err(400, error.message));
   }
 };
 
-exports.signIn = async (req, res) => {
+exports.signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     if (!email && !password) {
-      return res.status(400).json({
-        message: "Please enter email and password",
-      });
+      next(err(400, "Please enter email and password"));
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({
-        message: "No user registered to the entered email",
-      });
+      next(err(404, "No user registered to the entered email"));
     }
 
     const isValid = await user.passwordValidation(password, user.password);
 
     if (!isValid) {
-      return res.status(401).json({ message: "Password is invalid" });
+      next(err(401, "Password is invalid"));
     }
 
     createSendToken(user, res, 200, "Account logged in");
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(err(400, error.message));
   }
 };
 
 exports.signOut = (req, res) => {
-  res.status(200).json({ message: "Sign Out" });
+  res.clearCookie("jwt").status(200).json({ message: "Sign Out" });
 };
+
+exports.protect = async (req, res, next) => {
+  let token;
+
+  if (req.cookies && req.cookies.jwt) {
+    token = req.cookies.jwt;
+  } else if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer ")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
+    next(
+      err(
+        403,
+        "You are not authorized for this operation (token not provided)"
+      )
+    );
+  }
+
+  let decoded;
+
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    next(err(403, "Token is invalid"));
+  }
+
+  let activeUser;
+
+  try {
+    activeUser = await User.findById(!decoded.id);
+  } catch (error) {
+    next(err(403, "Token is invalid"));
+  }
+
+  if (!activeUser) {
+    next(err(403, "User's account can't be accessed"));
+  }
+
+  if (!activeUser.active) {
+    next(err(403, "User's account has been frozen"));
+  }
+
+  if (activeUser.passwordChangedAt && decoded.iat) {
+    const passwordChangedSeconds = parseInt(
+      activeUser.passwordChangedAt.getTime() / 1000
+    );
+
+    if (passwordChangedSeconds > decoded.iat) {
+      next(err(403, "You changed password recently, please try again"));
+    }
+  }
+
+  req.user = activeUser;
+
+  next();
+};
+
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    console.log(roles);
+    console.log(req.user.role);
+
+    if (!roles.includes(req.user.role)) {
+      next(err(403, "You don't have authorized for this process"));
+    }
+    next();
+  };
