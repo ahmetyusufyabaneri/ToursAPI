@@ -1,7 +1,8 @@
 const Tour = require("../models/tourModel");
 const APIFeatures = require("../utils/apiFeatures");
+const err = require("../utils/error");
 
-exports.getAllTours = async (req, res) => {
+exports.getAllTours = async (req, res, next) => {
   try {
     const features = new APIFeatures(
       Tour.find(),
@@ -17,30 +18,30 @@ exports.getAllTours = async (req, res) => {
       .status(200)
       .json({ message: "All tours recieved", results: tours.length, tours });
   } catch (error) {
-    res.status(400).json({ message: "An error occured", error: error.message });
+    next(err(500, error.message));
   }
 };
 
-exports.createTour = async (req, res) => {
+exports.createTour = async (req, res, next) => {
   try {
     const newTour = await Tour.create(req.body);
     res.status(201).json({ message: "New tour created", tour: newTour });
   } catch (error) {
-    res.status(400).json({ message: "An error occured", error: error.message });
+    next(err(400, error.message));
   }
 };
 
-exports.getTour = async (req, res) => {
+exports.getTour = async (req, res, next) => {
   const id = req.params.id;
   try {
     const tour = await Tour.findById(id);
     res.status(200).json({ message: "Tour recieved", tour });
   } catch (error) {
-    res.status(400).json({ message: "An error occured", error: error.message });
+    next(err(400, error.message));
   }
 };
 
-exports.updateTour = async (req, res) => {
+exports.updateTour = async (req, res, next) => {
   const id = req.params.id;
   try {
     const updateTour = await Tour.findByIdAndUpdate(id, req.body, {
@@ -48,21 +49,21 @@ exports.updateTour = async (req, res) => {
     });
     res.status(200).json({ message: "Tour updated", tour: updateTour });
   } catch (error) {
-    res.status(400).json({ message: "An error occured", error: error.message });
+    next(err(400, error.message));
   }
 };
 
-exports.deleteTour = async (req, res) => {
+exports.deleteTour = async (req, res, next) => {
   const id = req.params.id;
   try {
     await Tour.findByIdAndDelete(id);
     res.status(204).json({ message: "Tour deleted" });
   } catch (error) {
-    res.status(400).json({ message: "An error occured", error: error.message });
+    next(err(400, error.message));
   }
 };
 
-exports.getTourStats = async (req, res) => {
+exports.getTourStats = async (req, res, next) => {
   try {
     const stats = await Tour.aggregate([
       {
@@ -94,11 +95,11 @@ exports.getTourStats = async (req, res) => {
 
     res.status(200).json({ message: "Report created", stats });
   } catch (error) {
-    res.status(400).json({ message: "An error occured", error: error.message });
+    next(err(400, error.message));
   }
 };
 
-exports.getMonthlyPlan = async (req, res) => {
+exports.getMonthlyPlan = async (req, res, next) => {
   const year = Number(req.params.year);
 
   try {
@@ -148,7 +149,7 @@ exports.getMonthlyPlan = async (req, res) => {
 
     res.status(200).json({ message: `Plan created for ${year} year`, stats });
   } catch (error) {
-    res.status(400).json({ message: "An error occured", error: error.message });
+    next(err(400, error.message));
   }
 };
 

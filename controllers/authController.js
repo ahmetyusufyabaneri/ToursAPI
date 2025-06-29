@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const err = require("../utils/error");
+const sendMail = require("../utils/sendMail");
 
 const signToken = (userId) => {
   return jwt.sign({ id: userId, role: "admin" }, process.env.JWT_SECRET, {
@@ -143,3 +144,33 @@ exports.restrictTo =
     }
     next();
   };
+
+exports.forgotPassword = async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) return next(err(404, "No user registered to this mail found"));
+
+  const resetToken = user.createResetPasswordToken();
+
+  await user.save({ validateBeforeSave: false });
+
+  const url = `${req.protocol}://${req.headers.host}/api/users/reset-password/${resetToken}`;
+
+  await sendMail({
+    email: user.email,
+    subject: "Reset Password (10 min)",
+    text: resetToken,
+    html: `
+    <h2>Hello ${user.name}</h2>
+    <p>Password reset link for your account linked to your <b>${user.email}</b> email address</p>
+    <a href=${url}>${url}</a>
+    <p>Please <i>PATCH</i> request to this connection with new password</p>
+    `,
+  });
+
+  res.status(201).json({ message: "Email sent" });
+};
+
+exports.resetPassword = async (req, res, next) => {
+  res.status(200).json({ message: "Password updated" });
+};
