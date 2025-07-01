@@ -1,4 +1,4 @@
-module.exports = (req, res, next) => {
+const formatQuery = (req, res, next) => {
   const queryObject = { ...req.query };
 
   const params = ["sort", "fields", "page", "limit"];
@@ -17,3 +17,5 @@ module.exports = (req, res, next) => {
 
   next();
 };
+
+module.exports = formatQuery;

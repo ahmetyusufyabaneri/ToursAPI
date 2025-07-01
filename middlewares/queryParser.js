@@ -1,5 +1,7 @@
 const qs = require("qs");
 
-module.exports = (queryString) => {
+const queryParser = (queryString) => {
   return qs.parse(queryString);
 };
+
+module.exports = queryParser;
