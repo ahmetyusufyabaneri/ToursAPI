@@ -10,11 +10,17 @@ exports.updateAccount = catchAsync(async (req, res, next) => {
 
   const filteredBody = filterObject(req.body, ["name", "email"]);
 
-  res.status(200).json({ message: "Process success" });
+  const updated = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+  });
+
+  res.status(200).json({ message: "Account updated", updated });
 });
 
 exports.deleteAccount = catchAsync(async (req, res, next) => {
-  res.status(204).json({ message: "Process success" });
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({ message: "Account deleted" });
 });
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {

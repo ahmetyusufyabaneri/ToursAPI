@@ -10,10 +10,6 @@ const tourSchema = new Schema(
       unique: [true, "Name value must be unique"],
       min: [5, "Name value mustn't less than 5"],
       min: [50, "Name value mustn't more than 50"],
-      validate: [
-        validator.isAlpha,
-        "Name value must contain only alphabetic characters",
-      ],
     },
     duration: {
       type: Number,
@@ -80,6 +76,27 @@ const tourSchema = new Schema(
     hour: {
       type: Number,
     },
+    startLocation: {
+      description: String,
+      type: { type: String, default: "Point", enum: "Point" },
+      coordinates: [Number],
+      address: String,
+    },
+    locations: [
+      {
+        description: String,
+        type: { type: String, default: "Point", enum: "Point" },
+        coordinates: [Number],
+        address: String,
+        day: Number,
+      },
+    ],
+    guides: [
+      {
+        type: Schema.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -103,12 +120,21 @@ tourSchema.pre("save", function (next) {
 
 tourSchema.post("save", function (doc, next) {
   console.log("It worked after create account process");
-  s;
   next();
 });
 
 tourSchema.pre("find", function (next) {
   this.find({ premium: { $ne: true } });
+
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "guides",
+    select:
+      "-password -__v -passwordResetToken -passwordResetExpires -passwordChangedAt",
+  });
 
   next();
 });
