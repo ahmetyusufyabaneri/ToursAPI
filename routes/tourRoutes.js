@@ -11,6 +11,7 @@ const {
 } = require("../controllers/tourController");
 const formatQuery = require("../middlewares/formatQuery");
 const { protect, restrictTo } = require("../controllers/authController");
+const reviewController = require("../controllers/reviewController");
 
 const router = express.Router();
 
@@ -34,5 +35,10 @@ router
   .get(getTour)
   .patch(protect, restrictTo("admin", "lead-guide"), updateTour)
   .delete(protect, restrictTo("guide", "admin", "lead-guide"), deleteTour);
+
+router
+  .route("/api/tours/:tourId/reviews")
+  .get(reviewController.getAllReviews)
+  .post(reviewController.createReview);
 
 module.exports = router;

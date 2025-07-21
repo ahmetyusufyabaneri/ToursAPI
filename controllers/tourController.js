@@ -1,49 +1,17 @@
 const Tour = require("../models/tourModel");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsync = require("../utils/catchAsync");
+const factory = require("./handlerFactory");
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  console.log(req.query.price);
+exports.getAllTours = factory.getAll(Tour);
 
-  const features = new APIFeatures(Tour.find(), req.query, req.formattedQuery);
+exports.createTour = factory.createOne(Tour);
 
-  features.filter().sort().limit().pagination();
+exports.getTour = factory.getOne(Tour, "reviews");
 
-  const tours = await features.query;
+exports.updateTour = factory.updateOne(Tour);
 
-  res
-    .status(200)
-    .json({ message: "All tours recieved", results: tours.length, tours });
-});
-
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-  res.status(201).json({ message: "New tour created", tour: newTour });
-});
-
-exports.getTour = catchAsync(async (req, res, next) => {
-  const id = req.params.id;
-  const tour = await Tour.findById(id).populate({
-    path: "guides",
-    select:
-      "-password -__v -passwordResetToken -passwordResetExpires -passwordChangedAt",
-  });
-  res.status(200).json({ message: "Tour recieved", tour });
-});
-
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const id = req.params.id;
-  const updateTour = await Tour.findByIdAndUpdate(id, req.body, {
-    new: true,
-  });
-  res.status(200).json({ message: "Tour updated", tour: updateTour });
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const id = req.params.id;
-  await Tour.findByIdAndDelete(id);
-  res.status(204).json({ message: "Tour deleted" });
-});
+exports.deleteTour = factory.deleteOne(Tour);
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([

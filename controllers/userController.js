@@ -2,6 +2,7 @@ const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const err = require("../utils/error");
 const filterObject = require("../utils/filterObject");
+const factory = require("./handlerFactory");
 
 exports.updateAccount = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
@@ -23,22 +24,12 @@ exports.deleteAccount = catchAsync(async (req, res, next) => {
   res.status(204).json({ message: "Account deleted" });
 });
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  res.status(200).json({ message: "All users recieved" });
-});
+exports.getAllUsers = factory.getAll(User);
 
-exports.createUser = catchAsync(async (req, res, next) => {
-  res.status(201).json({ message: "User created" });
-});
+exports.createUser = factory.createOne(User);
 
-exports.getUser = catchAsync(async (req, res, next) => {
-  res.status(200).json({ message: "User recieved" });
-});
+exports.getUser = factory.getOne(User);
 
-exports.updateUser = catchAsync(async (req, res, next) => {
-  res.status(200).json({ message: "User updated" });
-});
+exports.updateUser = factory.updateOne(User);
 
-exports.deleteUser = catchAsync(async (req, res, next) => {
-  res.status(204).json({ message: "User deleted" });
-});
+exports.deleteUser = factory.deleteOne(User);

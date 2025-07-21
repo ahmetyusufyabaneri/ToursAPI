@@ -104,6 +104,12 @@ const tourSchema = new Schema(
   }
 );
 
+tourSchema.virtual("reviews", {
+  ref: "Review",
+  localField: "_id",
+  foreignField: "tour",
+});
+
 tourSchema.virtual("slug").get(function () {
   return this.name.toLowerCase().replaceAll(/ /g, "-");
 });
